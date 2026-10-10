@@ -185,14 +185,14 @@
 
     <!-- Botón flotante para la música -->
     <div class="absolute top-4 right-4 z-50">
-        <button id="music-toggle" class="bg-white/90 hover:bg-white text-rose-600 px-4 py-2 rounded-full shadow-lg backdrop-blur-sm flex items-center space-x-2 transition border border-rose-200">
-            <i id="music-icon" class="fas fa-music"></i>
-            <span id="music-text" class="text-xs sm:text-sm font-medium">Música 🎶</span>
+        <button onclick="toggleMusic()" id="music-btn" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2.5 rounded-full shadow-lg flex items-center space-x-2 transition animate-bounce border-2 border-white">
+            <i id="music-icon" class="fas fa-play"></i>
+            <span id="music-text" class="text-xs sm:text-sm font-bold">¡Reproducir Música! 🎶</span>
         </button>
     </div>
 
-    <!-- Reproductor de audio con enlace directo de Catbox -->
-    <audio id="bg-music" loop>
+    <!-- Reproductor de audio con Catbox optimizado -->
+    <audio id="bg-music" preload="auto" crossorigin="anonymous" loop>
         <source src="https://files.catbox.moe/nz5tns.mp3" type="audio/mpeg">
         Tu navegador no soporta audio.
     </audio>
@@ -272,19 +272,28 @@
         let isPlaying = false;
 
         const bgMusic = document.getElementById('bg-music');
-        const musicToggle = document.getElementById('music-toggle');
+        const musicBtn = document.getElementById('music-btn');
         const musicIcon = document.getElementById('music-icon');
         const musicText = document.getElementById('music-text');
 
-        bgMusic.volume = 0.5; // Volumen medio
+        bgMusic.volume = 0.5;
 
-        function updateMusicButtonState() {
+        function toggleMusic() {
             if (isPlaying) {
-                musicIcon.className = 'fas fa-volume-high';
-                musicText.textContent = 'Pausar música';
+                bgMusic.pause();
+                isPlaying = false;
+                musicIcon.className = 'fas fa-play';
+                musicText.textContent = '¡Reproducir Música! 🎶';
+                musicBtn.classList.add('animate-bounce');
             } else {
-                musicIcon.className = 'fas fa-music';
-                musicText.textContent = 'Música 🎶';
+                bgMusic.play().then(() => {
+                    isPlaying = true;
+                    musicIcon.className = 'fas fa-pause';
+                    musicText.textContent = 'Pausar música';
+                    musicBtn.classList.remove('animate-bounce');
+                }).catch(e => {
+                    console.log("Reproducción denegada por el navegador.");
+                });
             }
         }
 
@@ -300,27 +309,16 @@
 
             startPetalShower();
             
+            // Intento de reproducción automática al abrir el sobre
             bgMusic.play().then(() => {
                 isPlaying = true;
-                updateMusicButtonState();
+                musicIcon.className = 'fas fa-pause';
+                musicText.textContent = 'Pausar música';
+                musicBtn.classList.remove('animate-bounce');
             }).catch(e => {
-                console.log("Reproducción automática bloqueada por el navegador.");
+                console.log("Autoplay bloqueado. El botón superior sigue disponible.");
             });
         }
-
-        musicToggle.addEventListener('click', () => {
-            if (isPlaying) {
-                bgMusic.pause();
-                isPlaying = false;
-            } else {
-                bgMusic.play().then(() => {
-                    isPlaying = true;
-                }).catch(e => {
-                    console.log("Error al reproducir audio.");
-                });
-            }
-            updateMusicButtonState();
-        });
 
         function moveNoButton() {
             const btnNo = document.getElementById('btn-no');
@@ -361,6 +359,80 @@
         resizeCanvas();
 
         let petals = [];
-        const petalCount = 40
+        const petalCount = 40;
+
+        class Petal {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * -canvas.height;
+                this.size = Math.random() * 10 + 8;
+                this.speedY = Math.random() * 1.5 + 1;
+                this.speedX = Math.random() * 2 - 1;
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = Math.random() * 2 - 1;
+                this.opacity = Math.random() * 0.5 + 0.5;
+                const colors = ['#f43f5e', '#fb7185', '#fda4af', '#e11d48', '#fecdd3'];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX + Math.sin(this.y / 30) * 0.5;
+                this.rotation += this.rotationSpeed;
+
+                if (this.y > canvas.height + 20) {
+                    this.reset();
+                    this.y = -20;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate((this.rotation * Math.PI) / 180);
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = this.color;
+                
+                ctx.beginPath();
+                ctx.ellipse(0, 0, this.size, this.size / 2, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+
+        for (let i = 0; i < petalCount; i++) {
+            petals.push(new Petal());
+        }
+
+        function animatePetals() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            petals.forEach(petal => {
+                petal.update();
+                petal.draw();
+            });
+            requestAnimationFrame(animatePetals);
+        }
+        animatePetals();
+
+        function startPetalShower() {
+            for (let i = 0; i < 30; i++) {
+                petals.push(new Petal());
+            }
+        }
+
+        function triggerGrandCelebration() {
+            confetti({
+                particleCount: 120,
+                spread: 80,
+                origin: { y: 0.6 },
+                colors: ['#e11d48', '#f43f5e', '#fb7185', '#ffffff', '#ffd700']
+            });
+        }
+    </script>
 </body>
 </html>
