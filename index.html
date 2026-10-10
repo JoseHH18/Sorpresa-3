@@ -191,9 +191,9 @@
         </button>
     </div>
 
-    <!-- Reproductor de audio con enlace directo de Google Drive -->
+    <!-- Reproductor de audio con enlace directo de Catbox -->
     <audio id="bg-music" loop>
-        <source src="https://docs.google.com/uc?export=download&id=1M3vCUPuQut7b_JYVIjTil-iqh_PAwkuC" type="audio/mpeg">
+        <source src="https://files.catbox.moe/nz5tns.mp3" type="audio/mpeg">
         Tu navegador no soporta audio.
     </audio>
 
@@ -278,7 +278,6 @@
 
         bgMusic.volume = 0.5; // Volumen medio
 
-        // Función para actualizar el aspecto del botón
         function updateMusicButtonState() {
             if (isPlaying) {
                 musicIcon.className = 'fas fa-volume-high';
@@ -289,7 +288,6 @@
             }
         }
 
-        // Abrir el sobre y reproducir automáticamente
         function openEnvelope() {
             if (isOpen) return;
             isOpen = true;
@@ -302,16 +300,14 @@
 
             startPetalShower();
             
-            // Intentar reproducir audio al abrir el sobre
             bgMusic.play().then(() => {
                 isPlaying = true;
                 updateMusicButtonState();
             }).catch(e => {
-                console.log("Reproducción automática bloqueada. Usa el botón superior.");
+                console.log("Reproducción automática bloqueada por el navegador.");
             });
         }
 
-        // Control manual desde el botón
         musicToggle.addEventListener('click', () => {
             if (isPlaying) {
                 bgMusic.pause();
@@ -365,80 +361,6 @@
         resizeCanvas();
 
         let petals = [];
-        const petalCount = 40;
-
-        class Petal {
-            constructor() {
-                this.reset();
-            }
-
-            reset() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * -canvas.height;
-                this.size = Math.random() * 10 + 8;
-                this.speedY = Math.random() * 1.5 + 1;
-                this.speedX = Math.random() * 2 - 1;
-                this.rotation = Math.random() * 360;
-                this.rotationSpeed = Math.random() * 2 - 1;
-                this.opacity = Math.random() * 0.5 + 0.5;
-                const colors = ['#f43f5e', '#fb7185', '#fda4af', '#e11d48', '#fecdd3'];
-                this.color = colors[Math.floor(Math.random() * colors.length)];
-            }
-
-            update() {
-                this.y += this.speedY;
-                this.x += this.speedX + Math.sin(this.y / 30) * 0.5;
-                this.rotation += this.rotationSpeed;
-
-                if (this.y > canvas.height + 20) {
-                    this.reset();
-                    this.y = -20;
-                }
-            }
-
-            draw() {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                ctx.rotate((this.rotation * Math.PI) / 180);
-                ctx.globalAlpha = this.opacity;
-                ctx.fillStyle = this.color;
-                
-                ctx.beginPath();
-                ctx.ellipse(0, 0, this.size, this.size / 2, 0, 0, Math.PI * 2);
-                ctx.fill();
-                
-                ctx.restore();
-            }
-        }
-
-        for (let i = 0; i < petalCount; i++) {
-            petals.push(new Petal());
-        }
-
-        function animatePetals() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            petals.forEach(petal => {
-                petal.update();
-                petal.draw();
-            });
-            requestAnimationFrame(animatePetals);
-        }
-        animatePetals();
-
-        function startPetalShower() {
-            for (let i = 0; i < 30; i++) {
-                petals.push(new Petal());
-            }
-        }
-
-        function triggerGrandCelebration() {
-            confetti({
-                particleCount: 120,
-                spread: 80,
-                origin: { y: 0.6 },
-                colors: ['#e11d48', '#f43f5e', '#fb7185', '#ffffff', '#ffd700']
-            });
-        }
-    </script>
+        const petalCount = 40
 </body>
 </html>
