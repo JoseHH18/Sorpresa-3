@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¿Quieres ser mi novia? 💖</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti for petals/celebration -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #fce7f3 0%, #ffe4e6 50%, #fbcfe8 100%);
+            overflow-x: hidden;
+        }
+        .font-script {
+            font-family: 'Great Vibes', cursive;
+        }
+        .font-serif-romantic {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* Envelope Styles */
+        .envelope-wrapper {
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .envelope-wrapper:hover {
+            transform: scale(1.02);
+        }
+
+        .envelope {
+            position: relative;
+            width: 320px;
+            height: 220px;
+            background: #e11d48;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 20px 30px rgba(225, 29, 72, 0.25);
+        }
+
+        @media (min-width: 640px) {
+            .envelope {
+                width: 420px;
+                height: 280px;
+            }
+        }
+
+        .envelope::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            border-left: 160px solid #fb7185;
+            border-top: 110px solid transparent;
+            border-bottom: 110px solid #f43f5e;
+            border-radius: 0 0 0 10px;
+            z-index: 3;
+        }
+        @media (min-width: 640px) {
+            .envelope::before {
+                border-left: 210px solid #fb7185;
+                border-top: 140px solid transparent;
+                border-bottom: 140px solid #f43f5e;
+            }
+        }
+
+        .envelope::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            border-right: 160px solid #f43f5e;
+            border-top: 110px solid transparent;
+            border-bottom: 110px solid #e11d48;
+            border-radius: 0 0 10px 0;
+            z-index: 3;
+        }
+        @media (min-width: 640px) {
+            .envelope::after {
+                border-right: 210px solid #f43f5e;
+                border-top: 140px solid transparent;
+                border-bottom: 140px solid #e11d48;
+            }
+        }
+
+        .envelope-flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 0;
+            border-left: 160px solid transparent;
+            border-right: 160px solid transparent;
+            border-top: 120px solid #fda4af;
+            transform-origin: top;
+            transition: transform 0.6s ease-in-out, z-index 0.2s;
+            z-index: 4;
+        }
+        @media (min-width: 640px) {
+            .envelope-flap {
+                border-left: 210px solid transparent;
+                border-right: 210px solid transparent;
+                border-top: 150px solid #fda4af;
+            }
+        }
+
+        .envelope.open .envelope-flap {
+            transform: rotateX(180deg);
+            z-index: 1;
+        }
+
+        .heart-seal {
+            position: absolute;
+            top: 75px;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            background: #9f1239;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 5;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .envelope.open .heart-seal {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0);
+        }
+
+        /* Letter Inside */
+        .letter {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%) translateY(0);
+            width: 90%;
+            height: 85%;
+            background: #fffbeb;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            z-index: 2;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), height 0.5s ease;
+            overflow-y: auto;
+        }
+
+        .envelope.open .letter {
+            transform: translateX(-50%) translateY(-110px);
+            height: 380px;
+            z-index: 6;
+        }
+        @media (min-width: 640px) {
+            .envelope.open .letter {
+                transform: translateX(-50%) translateY(-130px);
+                height: 420px;
+                width: 380px;
+            }
+        }
+
+        /* Floating Rose Petals Canvas */
+        #petal-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 99;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 relative">
+
+    <canvas id="petal-canvas"></canvas>
+
+    <!-- Botón flotante para la música -->
+    <div class="absolute top-4 right-4 z-50">
+        <button id="music-toggle" class="bg-white/90 hover:bg-white text-rose-600 px-4 py-2 rounded-full shadow-lg backdrop-blur-sm flex items-center space-x-2 transition border border-rose-200">
+            <i id="music-icon" class="fas fa-music"></i>
+            <span id="music-text" class="text-xs sm:text-sm font-medium">Música 🎶</span>
+        </button>
+    </div>
+
+    <!-- Reproductor de audio con enlace directo de Google Drive -->
+    <audio id="bg-music" loop>
+        <source src="https://docs.google.com/uc?export=download&id=1M3vCUPuQut7b_JYVIjTil-iqh_PAwkuC" type="audio/mpeg">
+        Tu navegador no soporta audio.
+    </audio>
+
+    <div class="text-center mb-8 z-10">
+        <h1 class="font-script text-5xl sm:text-7xl text-rose-700 drop-shadow-sm mb-2">Para el amor de mi vida</h1>
+        <p class="text-rose-900/80 text-sm sm:text-base font-serif-romantic italic">Toca el sello para abrir este pequeño mensaje desde el fondo de mi corazón</p>
+    </div>
+
+    <main class="z-10 flex flex-col items-center">
+        <div class="envelope-wrapper" id="envelope-wrapper" onclick="openEnvelope()">
+            <div class="envelope" id="envelope">
+                <!-- Envelope Flap Top -->
+                <div class="envelope-flap"></div>
+                
+                <!-- Wax Heart Seal -->
+                <div class="heart-seal">
+                    <i class="fas fa-heart text-white text-xl"></i>
+                </div>
+
+                <!-- Letter Inside -->
+                <div class="letter flex flex-col justify-between text-slate-800 border border-amber-200/60">
+                    <div>
+                        <div class="flex justify-between items-center border-b border-rose-100 pb-2 mb-3">
+                            <span class="font-script text-2xl text-rose-600">Mi gorda bonita</span>
+                            <i class="fas fa-dove text-rose-400 text-sm"></i>
+                        </div>
+                        <p class="text-xs sm:text-sm leading-relaxed font-serif-romantic text-slate-700 mb-4">
+                            Sé que me has dicho que lo mejor es que esperáramos, pero es que no puedo esperar más porque quiero que volvamos a ser tú y yo.
+                        </p>
+                        <p class="text-xs sm:text-sm leading-relaxed font-serif-romantic text-slate-700 mb-4">
+                            Así que me gustaría que volviéramos a ser novios y volver a ser muyyy felices, y aunque estés en un mal momento te voy a ayudar siempre.
+                        </p>
+                        <div class="text-center my-4 bg-rose-50/80 p-3 rounded-lg border border-rose-200">
+                            <p class="font-bold text-rose-700 text-sm sm:text-base font-serif-romantic">¿Quieres volver a ser mi novia? 🌹</p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons inside letter -->
+                    <div class="flex space-x-3 pt-2" onclick="event.stopPropagation();">
+                        <button onclick="sayYes(event)" class="flex-1 bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-600 hover:to-red-600 text-white font-medium py-2 px-4 rounded-lg shadow transition transform hover:scale-105 text-sm flex items-center justify-center space-x-1">
+                            <i class="fas fa-heart"></i>
+                            <span>¡Sí, sí quiero!</span>
+                        </button>
+                        <button id="btn-no" onmouseover="moveNoButton()" onclick="moveNoButton()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-2 px-4 rounded-lg transition text-sm relative">
+                            Mmm... déjame pensarlo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hint instruction text -->
+        <div id="hint-text" class="mt-8 text-rose-800 bg-white/60 px-4 py-2 rounded-full shadow-sm text-xs sm:text-sm font-medium animate-bounce border border-rose-200">
+            <i class="fas fa-hand-pointer mr-1"></i> Haz clic en el sobre para abrirlo
+        </div>
+    </main>
+
+    <!-- Success Modal Overlay -->
+    <div id="success-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-500">
+        <div class="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl transform scale-95 transition-transform duration-500 border-2 border-rose-200">
+            <div class="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4 text-rose-500 text-3xl animate-pulse">
+                <i class="fas fa-heart"></i>
+            </div>
+            <h2 class="font-script text-4xl sm:text-5xl text-rose-600 mb-2">¡Sabía que dirías que sí!</h2>
+            <p class="text-slate-600 text-sm sm:text-base mb-6 font-serif-romantic">
+                TE VOY A AMAR POR SIEMPRE SIEMPRE MI GORDITAAAAA.
+            </p>
+            <button onclick="closeModal()" class="bg-rose-600 hover:bg-rose-700 text-white font-medium px-6 py-2.5 rounded-xl shadow-lg transition">
+                Te amo infinito ✨
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let isOpen = false;
+        let isPlaying = false;
+
+        const bgMusic = document.getElementById('bg-music');
+        const musicToggle = document.getElementById('music-toggle');
+        const musicIcon = document.getElementById('music-icon');
+        const musicText = document.getElementById('music-text');
+
+        bgMusic.volume = 0.5; // Volumen medio
+
+        // Función para actualizar el aspecto del botón
+        function updateMusicButtonState() {
+            if (isPlaying) {
+                musicIcon.className = 'fas fa-volume-high';
+                musicText.textContent = 'Pausar música';
+            } else {
+                musicIcon.className = 'fas fa-music';
+                musicText.textContent = 'Música 🎶';
+            }
+        }
+
+        // Abrir el sobre y reproducir automáticamente
+        function openEnvelope() {
+            if (isOpen) return;
+            isOpen = true;
+            
+            const envelope = document.getElementById('envelope');
+            const hintText = document.getElementById('hint-text');
+            
+            envelope.classList.add('open');
+            if (hintText) hintText.style.display = 'none';
+
+            startPetalShower();
+            
+            // Intentar reproducir audio al abrir el sobre
+            bgMusic.play().then(() => {
+                isPlaying = true;
+                updateMusicButtonState();
+            }).catch(e => {
+                console.log("Reproducción automática bloqueada. Usa el botón superior.");
+            });
+        }
+
+        // Control manual desde el botón
+        musicToggle.addEventListener('click', () => {
+            if (isPlaying) {
+                bgMusic.pause();
+                isPlaying = false;
+            } else {
+                bgMusic.play().then(() => {
+                    isPlaying = true;
+                }).catch(e => {
+                    console.log("Error al reproducir audio.");
+                });
+            }
+            updateMusicButtonState();
+        });
+
+        function moveNoButton() {
+            const btnNo = document.getElementById('btn-no');
+            const randomX = (Math.random() - 0.5) * 150;
+            const randomY = (Math.random() - 0.5) * 100;
+            btnNo.style.transform = `translate(${randomX}px, ${randomY}px)`;
+        }
+
+        function sayYes(event) {
+            event.stopPropagation();
+            triggerGrandCelebration();
+
+            const modal = document.getElementById('success-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.querySelector('div').classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('success-modal');
+            modal.classList.add('opacity-0');
+            modal.querySelector('div').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 500);
+        }
+
+        const canvas = document.getElementById('petal-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let petals = [];
+        const petalCount = 40;
+
+        class Petal {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * -canvas.height;
+                this.size = Math.random() * 10 + 8;
+                this.speedY = Math.random() * 1.5 + 1;
+                this.speedX = Math.random() * 2 - 1;
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = Math.random() * 2 - 1;
+                this.opacity = Math.random() * 0.5 + 0.5;
+                const colors = ['#f43f5e', '#fb7185', '#fda4af', '#e11d48', '#fecdd3'];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX + Math.sin(this.y / 30) * 0.5;
+                this.rotation += this.rotationSpeed;
+
+                if (this.y > canvas.height + 20) {
+                    this.reset();
+                    this.y = -20;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate((this.rotation * Math.PI) / 180);
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = this.color;
+                
+                ctx.beginPath();
+                ctx.ellipse(0, 0, this.size, this.size / 2, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+
+        for (let i = 0; i < petalCount; i++) {
+            petals.push(new Petal());
+        }
+
+        function animatePetals() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            petals.forEach(petal => {
+                petal.update();
+                petal.draw();
+            });
+            requestAnimationFrame(animatePetals);
+        }
+        animatePetals();
+
+        function startPetalShower() {
+            for (let i = 0; i < 30; i++) {
+                petals.push(new Petal());
+            }
+        }
+
+        function triggerGrandCelebration() {
+            confetti({
+                particleCount: 120,
+                spread: 80,
+                origin: { y: 0.6 },
+                colors: ['#e11d48', '#f43f5e', '#fb7185', '#ffffff', '#ffd700']
+            });
+        }
+    </script>
+</body>
+</html>
